@@ -1,0 +1,12 @@
+[
+  {
+    "codigo": "L1",
+    "titulo": "Dune: Crónicas",
+    "disponible": false
+  },
+  {
+    "codigo": "L2",
+    "titulo": "Cien años de soledad",
+    "disponible": true
+  }
+]
