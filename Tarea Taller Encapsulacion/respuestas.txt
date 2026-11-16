@@ -1,0 +1,356 @@
+EJERCICIO 1
+Predicción: True False / False False / True
+
+Resultado: coincide.
+El primer valor dice si el préstamo se ha hecho; el segundo si el libro está disponible ahora.
+Al ejecutar a.prestar(), self es el objeto a.
+a y b tienen el mismo título pero son objetos distintos: cada uno tiene su propio estado.
+Si pusiera b = a, b sería el MISMO libro que a, y print(b.disponible) daría False.
+
+
+EJERCICIO 2
+Con la clase original sale True. No se registró ninguna devolución:
+se cambió el estado a mano (a.disponible = True) y se saltó devolver().
+En mi e18.py el menú solo CONSULTA disponible (en resumen() y obtener_disponibles()).
+Las ASIGNACIONES (disponible = ...) solo están dentro de prestar() y devolver() de Libro.
+Quien debe decidir si se acepta un préstamo o una devolución es la clase Libro.
+Diagrama (prestar, prestar, devolver, devolver): el primer préstamo cambia a prestado,
+el segundo se rechaza y se queda igual, la primera devolución cambia a disponible,
+la segunda se rechaza y se queda igual. Consultar no cambia el estado.
+
+
+
+EJERCICIO 3
+El estado se guarda en self._disponible,
+Con @property el menú sigue leyendo libro.disponible sin paréntesis,
+pero como solo hay lectura, asignar libro.disponible = ... da AttributeError.
+
+
+Error 1: con self.disponible = True en __init__ falla al crear el ejemplar con
+AttributeError (has no setter), porque la propiedad solo permite leer.
+
+
+Error 2: con return self.disponible dentro de la propiedad sale RecursionError.
+1ª llamada: libro.disponible ejecuta la propiedad.
+2ª llamada: dentro, self.disponible vuelve a ejecutar la misma propiedad, y así sin fin.
+Se arregla leyendo el atributo interno: return self._disponible.
+
+
+ENCAPSUALCION EJERCICIO 3:
+Experimento de encapsulación. Predicción: a.disponible = False dará AttributeError;
+a._disponible = False sí funcionará.
+
+
+Resultado: coincide.
+a2._disponible = False funciona porque en Python el _ es solo un convenio
+de uso interno, no lo prohíbe.
+El libro queda como prestado pero sin pasar por prestar(): me he saltado la
+operación de préstamo del menú y no queda registrado ningún préstamo.
+El ejemplar de prueba se restaura creando uno nuevo (a2 era independiente).
+
+
+
+Prueba del menú: presté L01, consulté su ficha dos veces (salía "prestado" las dos),
+el segundo préstamo se rechazó y la devolución se aceptó.
+Consultar la ficha no altera el resultado del préstamo porque la opción de consulta
+solo llama a buscar() y resumen(), nunca a prestar().
+
+
+
+
+EJERCICIO 4
+codigo_valido es un método estático: solo necesita el texto, no un libro.
+Las comprobaciones de la tabla (L01, L99 válidos; L00, L1, L001, l03, " L03",
+y "" inválidos) se ejecutan con assert sin crear ningún objeto:
+Libro.codigo_valido("L01").
+__init__ llama al mismo validador: Libro("L00","Dune") lanza ValueError.
+El título se guarda sin espacios exteriores: Libro("L01"," Dune ").titulo == "Dune".
+Un título vacío o solo con espacios también lanza ValueError.
+Para comprobar si un código ya está ocupado haría falta conocer todos los libros
+registrados. Esos datos los tiene el objeto Biblioteca (su lista libros), no el Libro.
+
+
+
+EJERCICIO 5
+Predicción: "L10" lo rechaza desde_linea (no hay ;), "L00;Dune" lo rechaza __init__
+(código no válido) y "L10;  " lo rechaza __init__ (título vacío).
+
+Resultado: coincide.
+" L08 ; Dune " crea el mismo ejemplar que Libro("L08", "Dune").
+"L09; Python; casos prácticos" conserva el título completo porque split(";", 1)
+solo corta por el primer punto y coma.
+"L10" -> lo rechaza desde_linea (no tiene separador).
+"L00;Dune" -> lo rechaza __init__ (codigo_valido devuelve False).
+"L10;  " -> lo rechaza __init__ (el título queda vacío tras strip()).
+
+
+Prueba de la subclase. Predicción: imprimirá LibroDeSala.
+
+Con return cls(...) imprime LibroDeSala: cls recibe la clase desde la que se llama.
+Con return Libro(...) imprime Libro: escribir Libro fija el tipo del resultado
+aunque la llamada venga de una subclase. He recuperado la versión con cls.
+
+Tabla de métodos:
+- ejemplar.prestar(): método de instancia. Cambia el estado del ejemplar concreto
+  con el que se llama (self).
+- Libro.desde_linea(texto): método de clase. Si se llama desde una subclase, debe
+  construir un objeto de esa subclase, por eso usa cls.
+- Libro.codigo_valido(texto): método estático. No hace falta conocer nada aparte
+  del texto; por eso se puede probar sin crear ningún objeto.
+
+
+  
+EJERCICIO 6
+Predicción: False y Atlas.
+
+Resultado: coincide.
+libro, mostrador e inventario[0] apuntan a una única instancia (el mismo objeto).
+El préstamo con mostrador.prestar() cambia el estado de esa instancia, por eso
+inventario[0].disponible da False.
+del borra un nombre, no el objeto: la referencia de la lista sigue intacta y por
+eso inventario[0].titulo da Atlas.
+__init__ se ejecutó 1 sola vez, en la primera línea (Libro("L14", "Atlas")).
+Dejó de estar disponible en el paso mostrador.prestar().
+inventario.clear() elimina la última referencia (la del elemento de la lista);
+a partir de ahí nadie apunta al libro y Python puede liberarlo.
+
+
+
+EJERCICIO 7
+Predicción guion 1: durante A la caja mantiene vivo el testigo; "Fin L20" puede
+aparecer entre A y B, al vaciar la caja (última referencia).
+Predicción guion 2: con copia, "Fin L20" no puede salir antes de B porque copia
+sigue apuntando al objeto; saldrá al final con del copia.
+
+Traza 1:
+(.venv) PS C:\Users\dpinjim2703\Desktop\Proyectos\POO\Tarea Taller Encapsulacion> python testigo.py 1
+Alta L20
+A: la caja conserva L20
+Fin L20
+B: la caja está vacía
+
+Traza 2:
+(.venv) PS C:\Users\dpinjim2703\Desktop\Proyectos\POO\Tarea Taller Encapsulacion> python testigo.py 2
+Alta L20
+A: la caja conserva L20
+B: la caja está vacía
+L20
+Fin L20
+
+Diferencia: en el guion 1, al vaciar la caja desaparece la última referencia y
+CPython ejecuta __del__ entre A y B. En el guion 2, la variable copia es una
+referencia adicional que mantiene vivo el testigo después de B; por eso
+print(copia.codigo) funciona y "Fin L20" solo aparece tras del copia.
+del elimina un nombre (una referencia), no el objeto. El momento exacto de la
+finalización depende del intérprete y no está garantizado; lo que sí se puede
+comprobar es que mientras haya una referencia el objeto sigue accesible.
+
+Propuesta del compañero (registrar la devolución en __del__): si la biblioteca
+conserva el ejemplar en su catálogo durante todo el curso, la lista mantiene una
+referencia, el objeto nunca se destruye y __del__ no se ejecuta: la devolución
+no se registraría nunca. La devolución debe registrarse con la operación
+explícita devolver() (opción 3 del menú). Para cerrar recursos en un momento
+definido se usan mecanismos explícitos, como with para ficheros.
+
+
+
+EJERCICIO 8
+Nueva opción 5 "Alta desde escáner": lee una línea, construye el ejemplar con
+Libro.desde_linea (método de clase) y lo añade con biblio.agregar().
+Si se produce ValueError, se informa del motivo y el menú continúa.
+Los duplicados los detecta Biblioteca.agregar() antes de incorporar el libro.
+Tras un intento fallido la colección no cambia: el libro malo nunca llega a
+crearse o nunca se añade a la lista.
+Reparto de reglas: el Libro conoce su estado y el formato de su código; la
+Biblioteca conoce los códigos registrados; el menú presenta el resultado.
+
+
+Prueba de aceptación (catálogo vacío al empezar):
+(.venv) PS C:\Users\dpinjim2703\Desktop\Proyectos\POO\Tarea Taller Encapsulacion> python biblioteca.py
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 5
+Línea del escáner (código;título): L21;Dune
+Alta correcta: [L21] Dune - disponible
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 5
+Línea del escáner (código;título): L22;Dune
+Alta correcta: [L22] Dune - disponible
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 5
+Línea del escáner (código;título): L21;Otro título
+Alta rechazada: el código L21 ya está registrado.
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 5
+Línea del escáner (código;título): L00;Atlas
+Alta rechazada: código no válido 'L00' (debe ser L01..L99).
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 2
+Introduce el código del libro a prestar: L21
+El libro [L21] ha sido prestado con éxito.
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 6
+Código del libro a consultar: L21
+[L21] Dune - prestado
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 6
+Código del libro a consultar: L21
+[L21] Dune - prestado
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 2
+Introduce el código del libro a prestar: L21
+Operación rechazada: El libro [L21] ya se encuentra prestado.
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 4
+
+--- Libros Disponibles ---
+[L22] Dune - disponible
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 3
+Introduce el código del libro a devolver: L21
+El libro [L21] ha sido devuelto con éxito.
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 3
+Introduce el código del libro a devolver: L21
+Operación rechazada: El libro [L21] ya estaba disponible.
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 5
+Línea del escáner (código;título): L23;Atlas edición escolar
+Alta correcta: [L23] Atlas edición escolar - disponible
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 1
+
+--- Listado Completo ---
+[L21] Dune - disponible
+[L22] Dune - disponible
+[L23] Atlas edición escolar - disponible
+
+--- MENÚ BIBLIOTECA ---
+1. Listar todos los libros
+2. Prestar libro
+3. Devolver libro
+4. Listar solo libros disponibles
+5. Alta desde escáner
+6. Consultar ficha
+0. Salir
+Selecciona una opción: 0
+Saliendo de la aplicación...
+
+Resumen:
+1. L21;Dune y L22;Dune -> dos ejemplares disponibles con el mismo título.
+2. L21;Otro título (duplicado) y L00;Atlas (código no válido) -> ambos rechazados;
+   quedan los dos títulos originales.
+3. Prestar L21 -> aceptado; consultar ficha dos veces -> sigue prestado;
+   prestar otra vez -> rechazado. L22 continúa disponible.
+4. Devolver L21 -> aceptado; devolver otra vez -> rechazado.
+5. L23;Atlas; edición escolar -> tercer ejemplar con el título completo.
+
+
+DEMOSTRACIÓN
+Intento rechazado elegido: L00;Atlas.
+Lo detecta __init__ de Libro al llamar a codigo_valido; lanza ValueError antes de
+que el objeto exista. El except del menú informa del motivo y sale con return
+antes de agregar(), por lo que el resto del inventario sigue intacto.
